@@ -5,7 +5,7 @@ import {
   Appointment,
   AppointmentsDayView,
 } from '../src/AppointmentsDayView';
-import { createContainer } from './domManipulators';
+import { createContainer, withEvent } from './domManipulators';
 
 describe('Appointment', () => {
   let container, render, element;
@@ -103,10 +103,16 @@ describe('Appointment', () => {
 });
 
 describe('AppointmentsDayView', () => {
-  let container, render, element, elements;
+  let container, render, element, elements, click;
 
   beforeEach(() => {
-    ({ container, render, element, elements } = createContainer());
+    ({
+      container,
+      render,
+      element,
+      elements,
+      click,
+    } = createContainer());
   });
 
   const today = new Date();
@@ -160,14 +166,14 @@ describe('AppointmentsDayView', () => {
   it('renders another appointment when selected', () => {
     render(<AppointmentsDayView appointments={appointments} />);
     const button = elements('button')[1];
-    ReactTestUtils.Simulate.click(button);
+    click(button);
     expect(container.textContent).toMatch('Jordan');
   });
 
   it('adds toggled class to button when selected', () => {
     render(<AppointmentsDayView appointments={appointments} />);
     const button = elements('button')[1];
-    ReactTestUtils.Simulate.click(button);
+    click(button);
     expect(button.className).toMatch('toggled');
   });
 

@@ -8,9 +8,11 @@ export const createContainer = () => {
   const field = (formId, name) => form(formId).elements[name];
   const labelFor = formElement =>
     container.querySelector(`label[for="${formElement}"]`);
+
   const element = selector => container.querySelector(selector);
   const elements = selector =>
     Array.from(container.querySelectorAll(selector));
+  const children = element => Array.from(element.childNodes);
 
   const simulateEvent = eventName => (element, eventData) =>
     ReactTestUtils.Simulate[eventName](element, eventData);
@@ -31,6 +33,7 @@ export const createContainer = () => {
     labelFor,
     element,
     elements,
+    children,
     click: simulateEvent('click'),
     change: simulateEvent('change'),
     submit: simulateEventAndWait('submit'),

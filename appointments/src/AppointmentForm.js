@@ -45,7 +45,7 @@ const RadioButtonIfAvailable = ({
   date,
   timeSlot,
   checkedTimeSlot,
-  handleChange
+  handleChange,
 }) => {
   const startsAt = mergeDateAndTime(date, timeSlot);
   if (availableTimeSlots.some(a => a.startsAt === startsAt)) {
@@ -69,7 +69,7 @@ const TimeSlotTable = ({
   today,
   availableTimeSlots,
   checkedTimeSlot,
-  handleChange
+  handleChange,
 }) => {
   const dates = weeklyDateValues(today);
   const timeSlots = dailyTimeSlots(salonOpensAt, salonClosesAt);
@@ -111,33 +111,51 @@ export const AppointmentForm = ({
   selectableStylists,
   stylist,
   serviceStylists,
-  onSubmit,
+  onSave,
   salonOpensAt,
   salonClosesAt,
   today,
   availableTimeSlots,
-  startsAt
+  startsAt,
 }) => {
+  const [error, setError] = useState(false);
+
   const [appointment, setAppointment] = useState({
     service,
     startsAt,
-    stylist
+    stylist,
   });
 
   const handleSelectBoxChange = ({ target: { value, name } }) =>
     setAppointment(appointment => ({
       ...appointment,
-      [name]: value
+      [name]: value,
     }));
 
   const handleStartsAtChange = useCallback(
     ({ target: { value } }) =>
       setAppointment(appointment => ({
         ...appointment,
-        startsAt: parseInt(value)
+        startsAt: parseInt(value),
       })),
     []
   );
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    const result = await window.fetch('/appointments', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(appointment),
+    });
+    if (result.ok) {
+      setError(false);
+      onSave();
+    } else {
+      setError(true);
+    }
+  };
 
   const stylistsForService = appointment.service
     ? serviceStylists[appointment.service]
@@ -150,7 +168,8 @@ export const AppointmentForm = ({
     : availableTimeSlots;
 
   return (
-    <form id="appointment" onSubmit={() => onSubmit(appointment)}>
+    <form id="appointment" onSubmit={handleSubmit}>
+      {error ? <Error /> : null}
       <label htmlFor="service">Salon service</label>
       <select
         name="service"
@@ -190,6 +209,7 @@ export const AppointmentForm = ({
 };
 
 AppointmentForm.defaultProps = {
+  onSave: () => {},
   availableTimeSlots: [],
   today: new Date(),
   salonOpensAt: 9,
@@ -200,7 +220,7 @@ AppointmentForm.defaultProps = {
     'Cut & color',
     'Beard trim',
     'Cut & beard trim',
-    'Extensions'
+    'Extensions',
   ],
   selectableStylists: ['Ashley', 'Jo', 'Pat', 'Sam'],
   serviceStylists: {
@@ -209,6 +229,10 @@ AppointmentForm.defaultProps = {
     'Cut & color': ['Ashley', 'Jo'],
     'Beard trim': ['Pat', 'Sam'],
     'Cut & beard trim': ['Pat', 'Sam'],
-    Extensions: ['Ashley', 'Pat']
-  }
+    Extensions: ['Ashley', 'Pat'],
+  },
 };
+
+const Error = () => (
+  <div className="error">An error occurred during save.</div>
+);

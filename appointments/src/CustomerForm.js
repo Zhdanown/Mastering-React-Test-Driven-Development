@@ -16,6 +16,7 @@ export const CustomerForm = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(false);
     const result = await window.fetch('/customers', {
       method: 'POST',
       credentials: 'same-origin',

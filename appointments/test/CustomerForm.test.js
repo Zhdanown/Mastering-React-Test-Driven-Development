@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactTestUtils from 'react-dom/test-utils';
 import 'whatwg-fetch';
 import { createContainer, withEvent } from './domManipulators';
 import { CustomerForm } from '../src/CustomerForm';
@@ -30,9 +29,7 @@ describe('CustomerForm', () => {
       change,
       submit,
     } = createContainer());
-    jest
-      .spyOn(window, 'fetch')
-      .mockReturnValue(fetchResponseOk({}));
+    jest.spyOn(window, 'fetch').mockReturnValue({});
   });
 
   afterEach(() => {
@@ -97,13 +94,24 @@ describe('CustomerForm', () => {
   });
 
   it('renders error message when fetch call fails', async () => {
-    window.fetch.mockReturnValue(Promise.resolve({ ok: false }));
+    window.fetch.mockReturnValue(fetchResponseError());
 
     render(<CustomerForm />);
     await submit(form('customer'));
 
     expect(element('.error')).not.toBeNull();
     expect(element('.error').textContent).toMatch('error occured');
+  });
+
+  it('clears an error when the form is submitted again', async () => {
+    window.fetch.mockReturnValueOnce(fetchResponseError());
+    window.fetch.mockReturnValue(fetchResponseOk({}));
+
+    render(<CustomerForm />);
+    await submit(form('customer'));
+    await submit(form('customer'));
+
+    expect(element('.error')).toBeNull();
   });
 
   const expectToBeInputFieldOfTypeText = formElement => {
@@ -154,9 +162,6 @@ describe('CustomerForm', () => {
       );
       change(
         field('customer', fieldName),
-        // {
-        //   target: { name: fieldName, value },
-        // },
         withEvent(fieldName, value)
       );
       await submit(form('customer'));
