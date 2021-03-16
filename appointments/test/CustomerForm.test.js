@@ -174,10 +174,10 @@ describe('CustomerForm', () => {
     });
 
     it('hides indicator when form has submitted', async () => {
-      render(<CustomerForm {...validCustomer}/>);
+      render(<CustomerForm {...validCustomer} />);
       await submit(form('customer'));
       expect(element('span.submittingIndicator')).toBeNull();
-    })
+    });
   });
 
   const expectToBeInputFieldOfTypeText = formElement => {
@@ -273,6 +273,39 @@ describe('CustomerForm', () => {
   });
 
   describe('validation', () => {
+    const itClearsFieldError = (fieldName, fieldValue) => {
+      it(`clears error when user corrects it `, async () => {
+        render(<CustomerForm {...validCustomer} />);
+
+        blur(
+          field('customer', fieldName),
+          withEvent(fieldName, '')
+        );
+        change(
+          field('customer', fieldName),
+          withEvent(fieldName, fieldValue)
+        );
+
+        expect(element('.error')).toBeNull();
+      });
+    };
+
+    const itDoesNotInvalidateFieldOnKeypress = (
+      fieldName,
+      fieldValue
+    ) => {
+      it('does not validate field on keypress', async () => {
+        render(<CustomerForm {...validCustomer} />);
+
+        change(
+          field('customer', fieldName),
+          withEvent(fieldName, fieldValue)
+        );
+
+        expect(element('.error')).toBeNull();
+      });
+    };
+
     const itInvalidatesFieldWithValue = (
       fieldName,
       value,
@@ -313,6 +346,14 @@ describe('CustomerForm', () => {
       'invalid',
       'Only numbers, spaces and these symbols are allowed: ( ) + -'
     );
+
+    itClearsFieldError('firstName', 'name');
+    itClearsFieldError('lastName', 'name');
+    itClearsFieldError('phoneNumber', '1234567890');
+
+    itDoesNotInvalidateFieldOnKeypress('firstName', '');
+    itDoesNotInvalidateFieldOnKeypress('lastName', '');
+    itDoesNotInvalidateFieldOnKeypress('phoneNumber', '');
 
     it('accepts standard phone number characters when validating', () => {
       render(<CustomerForm />);
